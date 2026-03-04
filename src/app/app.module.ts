@@ -5,6 +5,8 @@ import { OnCityOrdersModule } from './module/oncity/orders/OncityOrders.Module';
 import { OnCityBrandsModule } from './module/oncity/brands/OnCityBrands.Module';
 import { OnCityProductsModule } from './module/oncity/products/OncityProducts.Module';
 import { MegatoneOrdersModule } from './module/megatone/orders/MegatoneOrders.module';
+import { GetBrandsModule } from './module/fravega/brands/GetBrands.Module';
+import { GetCategoriesModule } from './module/fravega/categories/GetCategories.Module';
 
 @Module({
   imports: [
@@ -15,7 +17,9 @@ import { MegatoneOrdersModule } from './module/megatone/orders/MegatoneOrders.mo
     OnCityOrdersModule,
     OnCityBrandsModule,
     OnCityProductsModule,
-    MegatoneOrdersModule
+    MegatoneOrdersModule,
+    GetBrandsModule,
+    GetCategoriesModule
   ]
 })
 export class AppModule {}
