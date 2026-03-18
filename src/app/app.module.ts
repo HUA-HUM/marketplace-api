@@ -8,6 +8,7 @@ import { MegatoneOrdersModule } from './module/megatone/orders/MegatoneOrders.mo
 import { GetBrandsModule } from './module/fravega/brands/GetBrands.Module';
 import { GetCategoriesModule } from './module/fravega/categories/GetCategories.Module';
 import { FravegaPublishProductModule } from './module/fravega/products/fravega-publishProduct.module';
+import { MegatoneBrandsModule } from './module/megatone/brands/MegatoneBrands.Module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { FravegaPublishProductModule } from './module/fravega/products/fravega-p
     MegatoneOrdersModule,
     GetBrandsModule,
     GetCategoriesModule,
-    FravegaPublishProductModule
+    FravegaPublishProductModule,
+    MegatoneBrandsModule
   ]
 })
 export class AppModule {}
