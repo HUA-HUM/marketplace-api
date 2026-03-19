@@ -49,6 +49,8 @@ export class FravegaHttpClient {
     method: 'GET' | 'POST' | 'PUT',
     url: string
   ): Promise<T> {
+    const baseURL = this.client.defaults.baseURL ?? '';
+
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         const response = await fn();
@@ -64,7 +66,7 @@ export class FravegaHttpClient {
             continue;
           }
 
-          throw new FravegaHttpError(null, null, 'TIMEOUT', `[FRAVEGA ${method}] ${url} → TIMEOUT`);
+          throw new FravegaHttpError(null, null, 'TIMEOUT', `[FRAVEGA ${method}] ${baseURL + url} → TIMEOUT`);
         }
 
         /* RATE LIMIT */
@@ -78,24 +80,30 @@ export class FravegaHttpClient {
             status,
             err.response?.data,
             'RATE_LIMIT',
-            `[FRAVEGA ${method}] ${url} → RATE LIMIT`
+            `[FRAVEGA ${method}] ${baseURL + url} → RATE LIMIT`
           );
         }
 
         /* SERVER */
         if (status && status >= 500) {
-          throw new FravegaHttpError(status, err.response?.data, 'SERVER', `[FRAVEGA ${method}] ${url} → ${status}`);
+          throw new FravegaHttpError(
+            status,
+            err.response?.data,
+            'SERVER',
+            `[FRAVEGA ${method}] ${baseURL + url} → ${status}`
+          );
         }
 
+        /* UNKNOWN (esto es el que estás viendo ahora) */
         throw new FravegaHttpError(
           status ?? null,
           err.response?.data ?? err.message,
           'UNKNOWN',
-          `[FRAVEGA ${method}] ${url} → ${err.message}`
+          `[FRAVEGA ${method}] ${baseURL + url} → ${err.message}`
         );
       }
     }
 
-    throw new FravegaHttpError(null, null, 'UNKNOWN', `[FRAVEGA ${method}] ${url} → UNKNOWN`);
+    throw new FravegaHttpError(null, null, 'UNKNOWN', `[FRAVEGA ${method}] ${baseURL + url} → UNKNOWN`);
   }
 }
