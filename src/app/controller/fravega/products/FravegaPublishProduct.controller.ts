@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Res } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { FravegaPublishProductService } from 'src/app/services/fravega/products/publish/FravegaPublishProductService';
 import { FravegaPublishProductDto } from './dto/fravega-publish-product.dto';
 
@@ -7,7 +8,6 @@ import { FravegaPublishProductDto } from './dto/fravega-publish-product.dto';
 @Controller('fravega')
 export class FravegaPublishProductController {
   constructor(private readonly service: FravegaPublishProductService) {}
-
   @Post('publish')
   @ApiOperation({
     summary: 'Publicar producto en Fravega'
@@ -19,7 +19,9 @@ export class FravegaPublishProductController {
     status: 200,
     description: 'Respuesta directa de la API de Fravega'
   })
-  async publish(@Body() body: FravegaPublishProductDto) {
-    return this.service.publish(body);
+  async publish(@Body() body: FravegaPublishProductDto, @Res() res: Response) {
+    const result = await this.service.publish(body);
+
+    return res.status(result.status).send(result.data);
   }
 }
