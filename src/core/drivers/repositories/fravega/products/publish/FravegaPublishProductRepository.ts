@@ -13,20 +13,19 @@ export class FravegaPublishProductRepository implements FravegaPublishProductAda
     this.http = new FravegaHttpClient(config);
   }
 
-  async publish(@Body() body: FravegaPublishProductDto, @Res() res: Response) {
-    console.log('FRAVEGA /publish body.attributes', body.attributes);
+  async publish(body: FravegaPublishProduct): Promise<any> {
+    try {
+      const response = await this.http.post('/api/item', body);
 
-    console.log(
-      'FRAVEGA /publish attribute types',
-      body.attributes?.map(attr => ({
-        name: attr.name,
-        value: attr.value,
-        type: typeof attr.value
-      }))
-    );
-
-    const result = await this.service.publish(body);
-
-    return res.status(result.status).send(result.data);
+      return {
+        status: 200,
+        data: response
+      };
+    } catch (error: any) {
+      return {
+        status: error.status || 500,
+        data: JSON.parse(JSON.stringify(error.data))
+      };
+    }
   }
 }
