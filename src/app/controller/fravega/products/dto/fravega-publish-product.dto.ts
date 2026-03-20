@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, ValidateIf, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -9,11 +9,18 @@ export class FravegaAttributeDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'Negro' })
+  @ApiProperty({
+    example: 'Negro',
+    oneOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }]
+  })
+  @ValidateIf((_, value) => typeof value === 'string')
   @IsString()
-  value: string;
+  @ValidateIf((_, value) => typeof value === 'number')
+  @IsNumber()
+  @ValidateIf((_, value) => typeof value === 'boolean')
+  @IsBoolean()
+  value: string | number | boolean;
 }
-
 /* ================= IMAGES ================= */
 
 export class FravegaImageDto {

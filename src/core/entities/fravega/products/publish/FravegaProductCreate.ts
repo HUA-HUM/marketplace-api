@@ -1,6 +1,6 @@
 export interface FravegaAttribute {
   name: string;
-  value: string;
+  value: string | number | boolean;
 }
 
 export interface FravegaImage {
