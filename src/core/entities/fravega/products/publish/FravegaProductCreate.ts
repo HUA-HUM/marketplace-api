@@ -4,8 +4,9 @@ export interface FravegaAttribute {
 }
 
 export interface FravegaImage {
-  type: 'url';
-  url: string;
+  type: 'id' | 'url';
+  id?: string;
+  url?: string;
 }
 
 export interface FravegaDimensions {

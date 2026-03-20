@@ -24,13 +24,22 @@ export class FravegaAttributeDto {
 /* ================= IMAGES ================= */
 
 export class FravegaImageDto {
-  @ApiProperty({ example: 'url' })
+  @ApiProperty({
+    example: 'id',
+    enum: ['id', 'url']
+  })
   @IsString()
-  type: 'url';
+  type: 'id' | 'url';
 
-  @ApiProperty({ example: 'https://via.placeholder.com/600' })
+  @ApiProperty({ example: 'abc123', required: false })
+  @IsOptional()
   @IsString()
-  url: string;
+  id?: string;
+
+  @ApiProperty({ example: 'https://via.placeholder.com/600', required: false })
+  @IsOptional()
+  @IsString()
+  url?: string;
 }
 
 /* ================= DIMENSIONS ================= */

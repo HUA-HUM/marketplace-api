@@ -20,17 +20,6 @@ export class FravegaPublishProductController {
     description: 'Respuesta directa de la API de Fravega'
   })
   async publish(@Body() body: FravegaPublishProductDto, @Res() res: Response) {
-    console.log('FRAVEGA /publish body.attributes', body.attributes);
-
-    console.log(
-      'FRAVEGA /publish attribute types',
-      body.attributes?.map(attr => ({
-        name: attr.name,
-        value: attr.value,
-        type: typeof attr.value
-      }))
-    );
-
     const result = await this.service.publish(body);
 
     return res.status(result.status).send(result.data);
