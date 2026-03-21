@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { FravegaPublishProductController } from 'src/app/controller/fravega/products/FravegaPublishProduct.controller';
+import { FravegaPublishProductController } from 'src/app/controller/fravega/products/publish/FravegaPublishProduct.controller';
 import { FravegaPublishProductService } from 'src/app/services/fravega/products/publish/FravegaPublishProductService';
 import { FravegaConfig } from 'src/core/drivers/repositories/fravega/Config/FravegaConfig';
 import { FravegaHttpClient } from 'src/core/drivers/repositories/fravega/http/FravegaHttpClient';

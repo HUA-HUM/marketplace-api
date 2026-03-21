@@ -42,11 +42,17 @@ export class FravegaHttpClient {
     return this.requestWithRetry<T>(() => this.client.put<T>(url, body), 'PUT', url);
   }
 
+  /* ========================== PATCH ========================== */
+
+  async patch<T>(url: string, body?: any): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.patch<T>(url, body), 'PATCH', url);
+  }
+
   /* ===================== CORE RETRY ======================== */
 
   private async requestWithRetry<T>(
     fn: () => Promise<{ data: T }>,
-    method: 'GET' | 'POST' | 'PUT',
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH',
     url: string
   ): Promise<T> {
     const baseURL = this.client.defaults.baseURL ?? '';
