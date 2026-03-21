@@ -17,6 +17,7 @@ import { FravegaAprobeProductModule } from './module/fravega/status/aprobe/Frave
 import { FravegaUpdatePriceModule } from './module/fravega/price/FravegaUpdatePrice.Module';
 import { FravegaUpdateItemModule } from './module/fravega/update/FravegaUpdateItem.Module';
 import { FravegaUpdateStockModule } from './module/fravega/stock/FravegaUpdateStock.Module';
+import { FravegaOrdersModule } from './module/fravega/orders/FravegaOrders.Module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { FravegaUpdateStockModule } from './module/fravega/stock/FravegaUpdateSt
     FravegaUpdatePriceModule,
     FravegaUpdateItemModule,
     FravegaUpdateStockModule,
+    FravegaOrdersModule,
     MegatoneBrandsModule,
     MegatoneCategoriesModule
   ]

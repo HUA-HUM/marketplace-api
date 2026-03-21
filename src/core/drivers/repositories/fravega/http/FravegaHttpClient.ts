@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 import { FravegaConfig } from '../Config/FravegaConfig';
 import { FravegaHttpError } from './error/FravegaHttpError';
 
@@ -26,26 +26,26 @@ export class FravegaHttpClient {
 
   /* ========================== GET ========================== */
 
-  async get<T>(url: string): Promise<T> {
-    return this.requestWithRetry<T>(() => this.client.get<T>(url), 'GET', url);
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.get<T>(url, config), 'GET', url);
   }
 
   /* ========================== POST ========================= */
 
-  async post<T>(url: string, body: any): Promise<T> {
-    return this.requestWithRetry<T>(() => this.client.post<T>(url, body), 'POST', url);
+  async post<T>(url: string, body: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.post<T>(url, body, config), 'POST', url);
   }
 
   /* ========================== PUT ========================== */
 
-  async put<T>(url: string, body: any): Promise<T> {
-    return this.requestWithRetry<T>(() => this.client.put<T>(url, body), 'PUT', url);
+  async put<T>(url: string, body: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.put<T>(url, body, config), 'PUT', url);
   }
 
   /* ========================== PATCH ========================== */
 
-  async patch<T>(url: string, body?: any): Promise<T> {
-    return this.requestWithRetry<T>(() => this.client.patch<T>(url, body), 'PATCH', url);
+  async patch<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.patch<T>(url, body, config), 'PATCH', url);
   }
 
   /* ===================== CORE RETRY ======================== */
