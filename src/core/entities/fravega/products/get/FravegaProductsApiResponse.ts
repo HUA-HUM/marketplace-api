@@ -9,6 +9,7 @@ export type FravegaProductsApiResponse =
       total?: number;
       count?: number;
       totalCount?: number;
+      size?: number;
       limit?: number;
       offset?: number;
       pageSize?: number;
