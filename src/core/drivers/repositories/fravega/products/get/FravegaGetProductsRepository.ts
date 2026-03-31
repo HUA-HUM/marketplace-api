@@ -11,52 +11,28 @@ export class FravegaGetProductsRepository implements IFravegaGetProductsReposito
   constructor(private readonly http: FravegaHttpClient) {}
 
   async list(pagination: PaginationParams): Promise<PaginatedResult<FravegaProduct>> {
-    const pageSize = pagination.limit;
-    const firstPage = Math.floor(pagination.offset / pageSize) + 1;
-    const skipInFirstPage = pagination.offset % pageSize;
-    const neededItems = skipInFirstPage + pagination.limit;
+    const query = new URLSearchParams({
+      limit: pagination.limit.toString(),
+      offset: pagination.offset.toString()
+    });
 
-    const collectedItems: FravegaProduct[] = [];
-    let currentPage = firstPage;
-    let total = 0;
-    let hasMorePages = true;
+    const response = await this.http.get<FravegaProductsApiResponse>(`/api/v1/item?${query.toString()}`);
 
-    while (collectedItems.length < neededItems && hasMorePages) {
-      const response = await this.fetchPage(currentPage, pageSize);
-      const pageItems = this.extractItems(response);
-
-      if (!total) {
-        total = this.extractNumber(response, ['total', 'count', 'totalCount']) ?? pageItems.length;
-      }
-
-      collectedItems.push(...pageItems);
-
-      const reportedPageSize = this.extractNumber(response, ['size', 'limit', 'pageSize']) ?? pageSize;
-      hasMorePages = pageItems.length === reportedPageSize && collectedItems.length + pagination.offset < total;
-      currentPage += 1;
-    }
-
-    const items = collectedItems.slice(skipInFirstPage, skipInFirstPage + pagination.limit);
-    const nextOffset = pagination.offset + items.length < total ? pagination.offset + items.length : null;
+    const items = this.extractItems(response);
+    const total = this.extractNumber(response, ['total', 'count', 'totalCount']) ?? items.length;
+    const limit = this.extractNumber(response, ['limit', 'pageSize']) ?? pagination.limit;
+    const offset = this.extractOffset(response, pagination.offset, limit);
+    const nextOffset = offset + items.length < total ? offset + limit : null;
 
     return {
       items,
       total,
-      limit: pagination.limit,
-      offset: pagination.offset,
+      limit,
+      offset,
       count: items.length,
       hasNext: nextOffset !== null,
       nextOffset
     };
-  }
-
-  private async fetchPage(page: number, size: number): Promise<FravegaProductsApiResponse> {
-    const query = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString()
-    });
-
-    return this.http.get<FravegaProductsApiResponse>(`/api/v1/item?${query.toString()}`);
   }
 
   private extractItems(response: FravegaProductsApiResponse): FravegaProduct[] {
@@ -70,7 +46,7 @@ export class FravegaGetProductsRepository implements IFravegaGetProductsReposito
 
   private extractNumber(
     response: FravegaProductsApiResponse,
-    keys: Array<'total' | 'count' | 'totalCount' | 'size' | 'limit' | 'pageSize'>
+    keys: Array<'total' | 'count' | 'totalCount' | 'limit' | 'pageSize'>
   ): number | null {
     if (Array.isArray(response)) return null;
 
@@ -82,5 +58,16 @@ export class FravegaGetProductsRepository implements IFravegaGetProductsReposito
     }
 
     return null;
+  }
+
+  private extractOffset(response: FravegaProductsApiResponse, fallbackOffset: number, limit: number): number {
+    if (Array.isArray(response)) return fallbackOffset;
+    if (typeof response.offset === 'number' && Number.isFinite(response.offset)) return response.offset;
+
+    if (typeof response.page === 'number' && Number.isFinite(response.page) && response.page > 0) {
+      return (response.page - 1) * limit;
+    }
+
+    return fallbackOffset;
   }
 }
