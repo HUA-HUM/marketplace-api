@@ -1,22 +1,24 @@
 export interface FravegaOrderProduct {
-  sellerSku: number;
+  sellerSku: string;
   name: string;
   quantity: number;
   basePrice: number;
-  discounts: number;
+  discounts: unknown[];
   subtotal: number;
   imagesUrls: string[];
 }
 
 export interface FravegaOrderSummary {
-  orderId: string;
+  orderId: number;
   suborderId: string;
   purchaseDate: string;
   documentType: string;
   documentNumber: string;
   clientName: string;
+  cuil?: string;
   itemsQuantity: number;
-  deliveryType: 'SP' | 'HD';
+  amount: number;
+  deliveryType: string[];
   status: string;
   createdOn: string;
   deliveryStatus: string;
@@ -24,6 +26,7 @@ export interface FravegaOrderSummary {
 }
 
 export interface FravegaOrdersPage {
+  scrollId: string | null;
   currentPage: number;
   pages: number;
   pageSize: number;
