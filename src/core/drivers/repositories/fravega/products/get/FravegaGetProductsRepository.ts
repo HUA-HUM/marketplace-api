@@ -18,18 +18,19 @@ export class FravegaGetProductsRepository implements IFravegaGetProductsReposito
 
     const response = await this.http.get<FravegaProductsApiResponse>(`/api/v1/item?${query.toString()}`);
 
-    const items = this.extractItems(response);
-    const total = this.extractNumber(response, ['total', 'count', 'totalCount']) ?? items.length;
-    const limit = this.extractNumber(response, ['limit', 'pageSize']) ?? pagination.limit;
-    const offset = this.extractOffset(response, pagination.offset, limit);
-    const nextOffset = offset + items.length < total ? offset + limit : null;
+    const rawItems = this.extractItems(response);
+    const total = this.extractNumber(response, ['total', 'count', 'totalCount']) ?? rawItems.length;
+    const offset = this.extractOffset(response, pagination.offset, pagination.limit);
+    const items = rawItems.slice(0, pagination.limit);
+    const count = items.length;
+    const nextOffset = offset + count < total ? offset + count : null;
 
     return {
       items,
       total,
-      limit,
+      limit: pagination.limit,
       offset,
-      count: items.length,
+      count,
       hasNext: nextOffset !== null,
       nextOffset
     };
