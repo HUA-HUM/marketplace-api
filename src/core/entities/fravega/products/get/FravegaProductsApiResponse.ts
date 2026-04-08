@@ -6,6 +6,7 @@ export type FravegaProductsApiResponse =
       items?: FravegaProduct[];
       data?: FravegaProduct[];
       results?: FravegaProduct[];
+      size?: number;
       total?: number;
       count?: number;
       totalCount?: number;
