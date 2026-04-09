@@ -57,12 +57,22 @@ export class FravegaGetOrdersController {
     });
   }
 
-  @Get(':id')
+  @Get(':suborderId')
   @ApiOperation({ summary: 'Obtener detalle de suborden de Fravega' })
-  @ApiParam({ name: 'id', description: 'http://localhost:3000/fravega/orders?page=1&page-size=100' })
-  @ApiParam({ name: 'id', description: 'Identificador de orden' })
-  @ApiQuery({ name: 'orderid', required: true, type: Number, description: 'Identificador de suborden' })
-  async getOne(@Param('id') id: string, @Query('orderid') orderid: string): Promise<FravegaOrderDetail> {
-    return this.service.getOne(id, Number(orderid));
+  @ApiParam({
+    name: 'suborderId',
+    description: 'Identificador de suborden. Ejemplo: v88506252frvg-01'
+  })
+  @ApiQuery({
+    name: 'orderid',
+    required: true,
+    type: Number,
+    description: 'Identificador numerico de la orden. Ejemplo: 17951297'
+  })
+  async getOne(
+    @Param('suborderId') suborderId: string,
+    @Query('orderid', ParseIntPipe) orderId: number
+  ): Promise<FravegaOrderDetail> {
+    return this.service.getOne(suborderId, orderId);
   }
 }
