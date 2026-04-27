@@ -5,5 +5,5 @@ export interface MegatoneGetProductsResponseDto {
   PageSize: number;
   Total: number;
   TotalPages: number;
-  Content: MegatoneProductDto[];
+  Content: MegatoneProductDto[] | null;
 }
