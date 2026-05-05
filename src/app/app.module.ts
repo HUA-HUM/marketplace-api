@@ -4,6 +4,7 @@ import { MegatoneProductsModule } from './module/megatone/products/MegatoneProdu
 import { OnCityOrdersModule } from './module/oncity/orders/OncityOrders.Module';
 import { OnCityBrandsModule } from './module/oncity/brands/OnCityBrands.Module';
 import { OnCityProductsModule } from './module/oncity/products/OncityProducts.Module';
+import { OnCityCategoriesModule } from './module/oncity/categories/OnCityCategories.Module';
 import { MegatoneOrdersModule } from './module/megatone/orders/MegatoneOrders.module';
 import { GetBrandsModule } from './module/fravega/brands/GetBrands.Module';
 import { GetCategoriesModule } from './module/fravega/categories/GetCategories.Module';
@@ -27,6 +28,7 @@ import { FravegaOrdersModule } from './module/fravega/orders/FravegaOrders.Modul
     MegatoneProductsModule,
     OnCityOrdersModule,
     OnCityBrandsModule,
+    OnCityCategoriesModule,
     OnCityProductsModule,
     MegatoneOrdersModule,
     GetBrandsModule,
