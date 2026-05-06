@@ -36,8 +36,15 @@ export class OnCityHttpClient {
   }
 
   /* ========================== POST ========================= */
-  async post<T>(url: string, body: any): Promise<T> {
-    return this.requestWithRetry<T>(() => this.client.post<T>(url, body), 'POST', url);
+  async post<T>(url: string, body: any, options?: { baseURL?: string }): Promise<T> {
+    return this.requestWithRetry<T>(
+      () =>
+        this.client.post<T>(url, body, {
+          baseURL: options?.baseURL
+        }),
+      'POST',
+      url
+    );
   }
 
   /* ========================== PUT ========================== */

@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MegatoneProductsModule } from './module/megatone/products/MegatoneProducts.Module';
 import { OnCityOrdersModule } from './module/oncity/orders/OncityOrders.Module';
+import { OnCityAuthModule } from './module/oncity/auth/OnCityAuth.Module';
 import { OnCityBrandsModule } from './module/oncity/brands/OnCityBrands.Module';
 import { OnCityProductsModule } from './module/oncity/products/OncityProducts.Module';
 import { OnCityCategoriesModule } from './module/oncity/categories/OnCityCategories.Module';
+import { OnCityImagesModule } from './module/oncity/images/OnCityImages.Module';
 import { MegatoneOrdersModule } from './module/megatone/orders/MegatoneOrders.module';
 import { GetBrandsModule } from './module/fravega/brands/GetBrands.Module';
 import { GetCategoriesModule } from './module/fravega/categories/GetCategories.Module';
@@ -26,9 +28,11 @@ import { FravegaOrdersModule } from './module/fravega/orders/FravegaOrders.Modul
       isGlobal: true
     }),
     MegatoneProductsModule,
+    OnCityAuthModule,
     OnCityOrdersModule,
     OnCityBrandsModule,
     OnCityCategoriesModule,
+    OnCityImagesModule,
     OnCityProductsModule,
     MegatoneOrdersModule,
     GetBrandsModule,
