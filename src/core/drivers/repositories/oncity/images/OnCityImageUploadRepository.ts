@@ -5,6 +5,7 @@ import {
   OnCityImageUploadCommand
 } from 'src/core/adapters/repositories/oncity/images/IOnCityImageUploadRepository';
 import { IOnCityAppTokenLoginRepository } from 'src/core/adapters/repositories/oncity/auth/IOnCityAppTokenLoginRepository';
+import { OnCityHttpError } from '../http/errors/OnCityHttpError';
 
 @Injectable()
 export class OnCityImageUploadRepository implements IOnCityImageUploadRepository {
@@ -31,21 +32,35 @@ export class OnCityImageUploadRepository implements IOnCityImageUploadRepository
 
     form.append('', blob, command.originalName || command.fileName);
 
-    const response = await axios.post(
-      `https://app.io.vtex.com/vtex.catalog-images/v0/${account}/master/images/save/${encodeURIComponent(
-        command.fileName
-      )}`,
-      form,
-      {
+    const url = `https://app.io.vtex.com/vtex.catalog-images/v0/${account}/master/images/save/${encodeURIComponent(
+      command.fileName
+    )}`;
+
+    try {
+      const response = await axios.post(url, form, {
         headers: {
           VtexIdclientAutCookie: authCookie
         },
         maxBodyLength: Infinity,
         maxContentLength: Infinity
-      }
-    );
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status ?? null;
+        const type = status && status >= 500 ? 'SERVER' : 'UNKNOWN';
+
+        throw new OnCityHttpError(
+          status,
+          error.response?.data ?? error.message,
+          type,
+          `[ONCITY IMAGE UPLOAD] ${url} -> ${status ?? 'NO_STATUS'}`
+        );
+      }
+
+      throw error;
+    }
   }
 
   private extractAuthCookie(loginResponse: unknown): string | null {
