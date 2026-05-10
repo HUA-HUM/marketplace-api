@@ -1,7 +1,16 @@
-import { BadRequestException, Controller, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  HttpException,
+  Param,
+  Post,
+  UploadedFile,
+  UseInterceptors
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { OnCityImageUploadService } from 'src/app/services/oncity/images/OnCityImageUploadService';
+import { OnCityHttpError } from 'src/core/drivers/repositories/oncity/http/errors/OnCityHttpError';
 
 @ApiTags('oncity')
 @Controller('oncity/images')
@@ -37,11 +46,26 @@ export class OnCityImageUploadController {
       throw new BadRequestException('Debe enviarse un archivo multipart en el campo file');
     }
 
-    return this.service.execute({
-      fileName,
-      originalName: file.originalname,
-      mimeType: file.mimetype,
-      buffer: file.buffer
-    });
+    try {
+      return await this.service.execute({
+        fileName,
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        buffer: file.buffer
+      });
+    } catch (error) {
+      if (error instanceof OnCityHttpError) {
+        throw new HttpException(
+          {
+            message: 'VTEX rechazó la carga de imagen',
+            upstreamStatusCode: error.statusCode,
+            upstreamResponse: error.response
+          },
+          error.statusCode && error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : 502
+        );
+      }
+
+      throw error;
+    }
   }
 }
