@@ -35,9 +35,14 @@ export class FravegaUpdatePriceController {
 
   private mapFravegaError(error: unknown): HttpException {
     if (error instanceof FravegaHttpError) {
-      throw new HttpException(
+      const message =
+        error.type === 'CLOUDFRONT_BLOCKED'
+          ? 'CloudFront bloqueó la actualización antes de llegar a Frávega'
+          : 'Frávega rechazó la actualización de precio';
+
+      return new HttpException(
         {
-          message: 'Frávega rechazó la actualización de precio',
+          message,
           upstreamStatusCode: error.status,
           upstreamResponse: error.data,
           type: error.type,
