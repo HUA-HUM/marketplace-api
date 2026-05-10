@@ -2,7 +2,7 @@ export class FravegaHttpError extends Error {
   constructor(
     public status: number | null,
     public data: any,
-    public type: 'TIMEOUT' | 'RATE_LIMIT' | 'SERVER' | 'UNKNOWN',
+    public type: 'TIMEOUT' | 'RATE_LIMIT' | 'SERVER' | 'CLOUDFRONT_BLOCKED' | 'UNKNOWN',
     message: string
   ) {
     super(message);
