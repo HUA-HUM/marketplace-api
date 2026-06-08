@@ -11,6 +11,25 @@ export class GetProductsRepository implements IGetProductsRepository {
     private readonly config: GoogleMerchantConfig
   ) {}
 
+  async listProducts(params: { pageSize?: number; pageToken?: string }): Promise<{
+    products: unknown[];
+    nextPageToken?: string;
+  }> {
+    const pageSize = params.pageSize ? Math.min(params.pageSize, 1000) : 25;
+
+    Logger.info(
+      `[GOOGLE MERCHANT] list-products ${JSON.stringify({
+        pageSize,
+        hasPageToken: Boolean(params.pageToken)
+      })}`
+    );
+
+    return this.http.get(`/products/v1/accounts/${this.config.accountId}/products`, {
+      pageSize: String(pageSize),
+      ...(params.pageToken ? { pageToken: params.pageToken } : {})
+    });
+  }
+
   async getProduct(sku: string): Promise<unknown> {
     Logger.info(
       `[GOOGLE MERCHANT] get-product ${JSON.stringify({

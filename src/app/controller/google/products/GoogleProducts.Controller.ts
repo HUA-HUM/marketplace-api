@@ -11,6 +11,7 @@ import { GoogleMerchantConfig } from 'src/core/drivers/repositories/google/confi
 import { GoogleMerchantHttpError } from 'src/core/drivers/repositories/google/http/errors/GoogleMerchantHttpError';
 import { GetGooglePerformanceQueryDto } from './dto/GetGooglePerformanceQuery.dto';
 import { GoogleProductDto } from './dto/GoogleProduct.dto';
+import { ListGoogleProductsQueryDto } from './dto/ListGoogleProductsQuery.dto';
 import { UpdateGooglePriceDto } from './dto/UpdateGooglePrice.dto';
 import { UpdateGoogleStockDto } from './dto/UpdateGoogleStock.dto';
 
@@ -35,6 +36,21 @@ export class GoogleProductsController {
     try {
       this.assertStoreUrl(body.productUrl);
       return await this.publishGoogleProductService.execute(body);
+    } catch (error) {
+      throw this.mapGoogleError(error);
+    }
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Listar productos procesados en Google Merchant con paginado' })
+  @ApiQuery({ name: 'pageSize', required: false, example: 25 })
+  @ApiQuery({ name: 'pageToken', required: false })
+  async list(@Query() query: ListGoogleProductsQueryDto): Promise<unknown> {
+    try {
+      return await this.getGoogleProductService.list({
+        pageSize: query.pageSize,
+        pageToken: query.pageToken
+      });
     } catch (error) {
       throw this.mapGoogleError(error);
     }
