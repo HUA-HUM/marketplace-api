@@ -37,8 +37,11 @@ export class GoogleMerchantConfig {
     return `accounts/${this.accountId}/dataSources/${this.dataSourceId}`;
   }
 
-  productId(sku: string): string {
-    return encodeURIComponent(`${this.contentLanguage}~${this.feedLabel}~${sku}`);
+  productId(sku: string, options?: { contentLanguage?: string; feedLabel?: string }): string {
+    const contentLanguage = options?.contentLanguage ?? this.contentLanguage;
+    const feedLabel = options?.feedLabel ?? this.feedLabel;
+
+    return encodeURIComponent(`${contentLanguage}~${feedLabel}~${sku}`);
   }
 
   requiredEnv(name: string): string {

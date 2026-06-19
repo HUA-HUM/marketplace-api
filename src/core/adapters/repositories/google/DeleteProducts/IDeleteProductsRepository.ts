@@ -1,3 +1,3 @@
 export interface IDeleteProductsRepository {
-  deleteProduct(sku: string): Promise<unknown>;
+  deleteProduct(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown>;
 }
