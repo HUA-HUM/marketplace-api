@@ -2,5 +2,5 @@ import { GoogleMerchantProductsPage } from 'src/core/entities/google/products/Go
 
 export interface IGetProductsRepository {
   listProducts(params: { pageSize?: number; pageToken?: string }): Promise<GoogleMerchantProductsPage>;
-  getProduct(sku: string): Promise<unknown>;
+  getProduct(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown>;
 }

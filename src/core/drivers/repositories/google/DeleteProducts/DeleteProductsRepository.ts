@@ -18,25 +18,44 @@ export class DeleteProductsRepository implements IDeleteProductsRepository {
     private readonly config: GoogleMerchantConfig
   ) {}
 
-  async deleteProduct(sku: string): Promise<unknown> {
-    const productInputId = this.config.productId(sku);
-    const product = await this.http.get<GoogleMerchantProductResponse>(
-      `/products/v1/accounts/${this.config.accountId}/products/${productInputId}`
-    );
+  async deleteProduct(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown> {
+    const productInputId = this.config.productId(params.sku, {
+      contentLanguage: params.contentLanguage,
+      feedLabel: params.feedLabel
+    });
+    const product = await this.getProductOrNull(productInputId);
+
+    if (!product) {
+      Logger.warn(
+        `[GOOGLE MERCHANT] delete-product-not-found ${JSON.stringify({
+          sku: params.sku,
+          productInputId
+        })}`
+      );
+
+      return {
+        deleted: false,
+        sku: params.sku,
+        productInputId,
+        reason: 'NOT_FOUND',
+        message: 'Producto no encontrado en Google Merchant para este SKU / offerId'
+      };
+    }
+
     const dataSource = product.dataSource;
 
     if (!dataSource) {
       throw new GoogleMerchantHttpError(
         null,
-        { sku, product },
+        { sku: params.sku, product },
         'UNKNOWN',
-        `Google Merchant product ${sku} does not include a dataSource`
+        `Google Merchant product ${params.sku} does not include a dataSource`
       );
     }
 
     Logger.info(
       `[GOOGLE MERCHANT] delete-product ${JSON.stringify({
-        sku,
+        sku: params.sku,
         productInputId,
         dataSource
       })}`
@@ -48,9 +67,28 @@ export class DeleteProductsRepository implements IDeleteProductsRepository {
 
     return {
       deleted: true,
-      sku,
+      sku: params.sku,
       productInputId,
       dataSource
     };
+  }
+
+  private async getProductOrNull(productInputId: string): Promise<GoogleMerchantProductResponse | null> {
+    try {
+      return await this.http.get<GoogleMerchantProductResponse>(
+        `/products/v1/accounts/${this.config.accountId}/products/${productInputId}`
+      );
+    } catch (error) {
+      if (error instanceof GoogleMerchantHttpError && error.status === 404 && this.isItemNotFound(error.data)) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  private isItemNotFound(data: unknown): boolean {
+    const error = data as { error?: { details?: Array<{ metadata?: { REASON?: string } }> } };
+    return error.error?.details?.some(detail => detail.metadata?.REASON === 'ITEM_NOT_FOUND') ?? false;
   }
 }

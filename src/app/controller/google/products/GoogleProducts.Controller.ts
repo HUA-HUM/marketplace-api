@@ -10,6 +10,7 @@ import { UpdateGoogleStockService } from 'src/app/services/google/products/Updat
 import { GoogleMerchantConfig } from 'src/core/drivers/repositories/google/config/GoogleMerchantConfig';
 import { GoogleMerchantHttpError } from 'src/core/drivers/repositories/google/http/errors/GoogleMerchantHttpError';
 import { GetGooglePerformanceQueryDto } from './dto/GetGooglePerformanceQuery.dto';
+import { GoogleProductIdentityQueryDto } from './dto/GoogleProductIdentityQuery.dto';
 import { GoogleProductDto } from './dto/GoogleProduct.dto';
 import { ListGoogleProductsQueryDto } from './dto/ListGoogleProductsQuery.dto';
 import { UpdateGooglePriceDto } from './dto/UpdateGooglePrice.dto';
@@ -124,9 +125,15 @@ export class GoogleProductsController {
   @Get(':sku')
   @ApiOperation({ summary: 'Consultar producto en Google Merchant' })
   @ApiParam({ name: 'sku', description: 'SKU / offerId del producto' })
-  async get(@Param('sku') sku: string): Promise<unknown> {
+  @ApiQuery({ name: 'contentLanguage', required: false, example: 'es' })
+  @ApiQuery({ name: 'feedLabel', required: false, example: 'AR' })
+  async get(@Param('sku') sku: string, @Query() query: GoogleProductIdentityQueryDto): Promise<unknown> {
     try {
-      return await this.getGoogleProductService.execute(sku);
+      return await this.getGoogleProductService.execute({
+        sku,
+        contentLanguage: query.contentLanguage,
+        feedLabel: query.feedLabel
+      });
     } catch (error) {
       throw this.mapGoogleError(error);
     }
@@ -135,9 +142,15 @@ export class GoogleProductsController {
   @Delete(':sku')
   @ApiOperation({ summary: 'Eliminar producto de Google Merchant' })
   @ApiParam({ name: 'sku', description: 'SKU / offerId del producto' })
-  async delete(@Param('sku') sku: string): Promise<unknown> {
+  @ApiQuery({ name: 'contentLanguage', required: false, example: 'es' })
+  @ApiQuery({ name: 'feedLabel', required: false, example: 'AR' })
+  async delete(@Param('sku') sku: string, @Query() query: GoogleProductIdentityQueryDto): Promise<unknown> {
     try {
-      return await this.deleteGoogleProductService.execute(sku);
+      return await this.deleteGoogleProductService.execute({
+        sku,
+        contentLanguage: query.contentLanguage,
+        feedLabel: query.feedLabel
+      });
     } catch (error) {
       throw this.mapGoogleError(error);
     }

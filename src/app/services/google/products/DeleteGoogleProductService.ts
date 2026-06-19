@@ -8,7 +8,7 @@ export class DeleteGoogleProductService {
     private readonly deleteProductsRepository: IDeleteProductsRepository
   ) {}
 
-  execute(sku: string): Promise<unknown> {
-    return this.deleteProductsRepository.deleteProduct(sku);
+  execute(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown> {
+    return this.deleteProductsRepository.deleteProduct(params);
   }
 }
