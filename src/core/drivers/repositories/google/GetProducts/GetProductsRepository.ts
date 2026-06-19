@@ -30,14 +30,19 @@ export class GetProductsRepository implements IGetProductsRepository {
     });
   }
 
-  async getProduct(sku: string): Promise<unknown> {
+  async getProduct(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown> {
+    const productId = this.config.productId(params.sku, {
+      contentLanguage: params.contentLanguage,
+      feedLabel: params.feedLabel
+    });
+
     Logger.info(
       `[GOOGLE MERCHANT] get-product ${JSON.stringify({
-        sku,
-        productId: this.config.productId(sku)
+        sku: params.sku,
+        productId
       })}`
     );
 
-    return this.http.get(`/products/v1/accounts/${this.config.accountId}/products/${this.config.productId(sku)}`);
+    return this.http.get(`/products/v1/accounts/${this.config.accountId}/products/${productId}`);
   }
 }

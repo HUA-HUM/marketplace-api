@@ -13,7 +13,7 @@ export class GetGoogleProductService {
     return this.getProductsRepository.listProducts(params);
   }
 
-  execute(sku: string): Promise<unknown> {
-    return this.getProductsRepository.getProduct(sku);
+  execute(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown> {
+    return this.getProductsRepository.getProduct(params);
   }
 }

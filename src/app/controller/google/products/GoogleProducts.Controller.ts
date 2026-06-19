@@ -125,9 +125,15 @@ export class GoogleProductsController {
   @Get(':sku')
   @ApiOperation({ summary: 'Consultar producto en Google Merchant' })
   @ApiParam({ name: 'sku', description: 'SKU / offerId del producto' })
-  async get(@Param('sku') sku: string): Promise<unknown> {
+  @ApiQuery({ name: 'contentLanguage', required: false, example: 'es' })
+  @ApiQuery({ name: 'feedLabel', required: false, example: 'AR' })
+  async get(@Param('sku') sku: string, @Query() query: GoogleProductIdentityQueryDto): Promise<unknown> {
     try {
-      return await this.getGoogleProductService.execute(sku);
+      return await this.getGoogleProductService.execute({
+        sku,
+        contentLanguage: query.contentLanguage,
+        feedLabel: query.feedLabel
+      });
     } catch (error) {
       throw this.mapGoogleError(error);
     }
