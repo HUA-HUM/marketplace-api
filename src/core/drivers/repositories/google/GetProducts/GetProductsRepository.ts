@@ -3,6 +3,7 @@ import { IGetProductsRepository } from 'src/core/adapters/repositories/google/Ge
 import { Logger } from 'src/core/drivers/logger/Logger';
 import { GoogleMerchantConfig } from '../config/GoogleMerchantConfig';
 import { GoogleMerchantHttpClient } from '../http/GoogleMerchantHttpClient';
+import { GoogleMerchantStatusMapper } from '../mapper/GoogleMerchantStatusMapper';
 
 @Injectable()
 export class GetProductsRepository implements IGetProductsRepository {
@@ -24,10 +25,18 @@ export class GetProductsRepository implements IGetProductsRepository {
       })}`
     );
 
-    return this.http.get(`/products/v1/accounts/${this.config.accountId}/products`, {
+    const response = await this.http.get<{
+      products?: Record<string, unknown>[];
+      nextPageToken?: string;
+    }>(`/products/v1/accounts/${this.config.accountId}/products`, {
       pageSize: String(pageSize),
       ...(params.pageToken ? { pageToken: params.pageToken } : {})
     });
+
+    return {
+      ...response,
+      products: (response.products ?? []).map((product) => this.withMarketplaceStatus(product))
+    };
   }
 
   async getProduct(params: { sku: string; contentLanguage?: string; feedLabel?: string }): Promise<unknown> {
@@ -43,6 +52,17 @@ export class GetProductsRepository implements IGetProductsRepository {
       })}`
     );
 
-    return this.http.get(`/products/v1/accounts/${this.config.accountId}/products/${productId}`);
+    const product = await this.http.get<Record<string, unknown>>(
+      `/products/v1/accounts/${this.config.accountId}/products/${productId}`
+    );
+
+    return this.withMarketplaceStatus(product);
+  }
+
+  private withMarketplaceStatus(product: Record<string, unknown>): Record<string, unknown> {
+    return GoogleMerchantStatusMapper.appendPublicationStatus(product, {
+      targetCountry: this.config.statusCountry,
+      targetContexts: this.config.statusContexts
+    });
   }
 }
