@@ -25,6 +25,17 @@ export class GoogleMerchantConfig {
     return process.env.GOOGLE_MERCHANT_FEED_LABEL ?? 'AR';
   }
 
+  get statusCountry(): string {
+    return process.env.GOOGLE_MERCHANT_STATUS_COUNTRY ?? this.feedLabel;
+  }
+
+  get statusContexts(): string[] {
+    return (process.env.GOOGLE_MERCHANT_STATUS_CONTEXTS ?? 'SHOPPING_ADS,FREE_LISTINGS')
+      .split(',')
+      .map((context) => context.trim())
+      .filter(Boolean);
+  }
+
   get currencyCode(): string {
     return process.env.GOOGLE_MERCHANT_CURRENCY_CODE ?? 'ARS';
   }
