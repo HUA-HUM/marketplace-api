@@ -22,6 +22,7 @@ import { FravegaUpdateItemModule } from './module/fravega/update/FravegaUpdateIt
 import { FravegaUpdateStockModule } from './module/fravega/stock/FravegaUpdateStock.Module';
 import { FravegaOrdersModule } from './module/fravega/orders/FravegaOrders.Module';
 import { FravegaVtexOrdersModule } from './module/fravega/vtex/orders/FravegaVtexOrders.Module';
+import { FravegaFullOrdersModule } from './module/fravega/orders/full/FravegaFullOrders.Module';
 import { GoogleProductsModule } from './module/google/products/GoogleProducts.Module';
 
 @Module({
@@ -49,6 +50,7 @@ import { GoogleProductsModule } from './module/google/products/GoogleProducts.Mo
     FravegaUpdateStockModule,
     FravegaOrdersModule,
     FravegaVtexOrdersModule,
+    FravegaFullOrdersModule,
     MegatoneBrandsModule,
     MegatoneCategoriesModule,
     GoogleProductsModule
