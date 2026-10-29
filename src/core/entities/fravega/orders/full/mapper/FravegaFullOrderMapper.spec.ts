@@ -36,6 +36,11 @@ describe('FravegaFullOrderMapper', () => {
     expect(order).not.toHaveProperty('raw');
     expect(order.buyer).toMatchObject({ cuil: '27253275877', email: 'g@example.com' });
     expect(order.totals.total).toBe(1000);
+    expect(order.status).toEqual({
+      sellerCentral: 'Created',
+      sellerCentralDelivery: 'Pending',
+      vtex: 'ready-for-handling'
+    });
   });
 
   it('includes the raw payloads when includeRaw is true', () => {

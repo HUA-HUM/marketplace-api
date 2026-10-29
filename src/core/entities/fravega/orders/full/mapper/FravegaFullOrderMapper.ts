@@ -60,6 +60,7 @@ export class FravegaFullOrderMapper {
       vtexOrderId,
       status: {
         sellerCentral: detail.status,
+        sellerCentralDelivery: detail.deliveryStatus ?? null,
         vtex: vtex.status ?? null
       },
       purchaseDate: detail.purchaseDate,
