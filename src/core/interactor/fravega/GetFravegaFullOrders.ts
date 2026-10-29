@@ -25,13 +25,13 @@ export class GetFravegaFullOrders {
     private readonly vtexRepo: IFravegaVtexOrdersRepository
   ) {}
 
-  async list(filters: FravegaOrdersFilters): Promise<FravegaFullOrdersPage> {
+  async list(filters: FravegaOrdersFilters, includeRaw = false): Promise<FravegaFullOrdersPage> {
     /* 1️⃣ Listado de Seller Central (orderId + suborderId) */
     const page = await this.sellerCentralRepo.list(filters);
 
     /* 2️⃣ Completar cada suborden con su detalle y la orden VTEX */
     const results = await this.processInBatches(page.items, this.CONCURRENCY, item =>
-      this.build(item.orderId, item.suborderId)
+      this.build(item.orderId, item.suborderId, includeRaw)
     );
 
     /* 3️⃣ Separar las que fallaron para no perder la pagina entera */
@@ -53,8 +53,8 @@ export class GetFravegaFullOrders {
     };
   }
 
-  async getOne(suborderId: string, orderId: number): Promise<FravegaFullOrder> {
-    const result = await this.build(orderId, suborderId);
+  async getOne(suborderId: string, orderId: number, includeRaw = false): Promise<FravegaFullOrder> {
+    const result = await this.build(orderId, suborderId, includeRaw);
 
     if ('cause' in result) throw result.cause;
 
@@ -63,7 +63,7 @@ export class GetFravegaFullOrders {
 
   /* ================== helpers ================== */
 
-  private async build(orderId: number, suborderId: string): Promise<BuildResult> {
+  private async build(orderId: number, suborderId: string, includeRaw: boolean): Promise<BuildResult> {
     const vtexOrderId = `${VTEX_ORDER_PREFIX}${suborderId}`;
 
     const [detail, vtexOrder] = await Promise.allSettled([
@@ -84,7 +84,8 @@ export class GetFravegaFullOrders {
         orderId,
         vtexOrderId,
         detail: detail.value,
-        vtexOrder: vtexOrder.value
+        vtexOrder: vtexOrder.value,
+        includeRaw
       })
     };
   }

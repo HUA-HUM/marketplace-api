@@ -40,8 +40,9 @@ export class FravegaFullOrderMapper {
     vtexOrderId: string;
     detail: FravegaOrderDetail;
     vtexOrder: FravegaVtexOrder;
+    includeRaw?: boolean;
   }): FravegaFullOrder {
-    const { orderId, vtexOrderId, detail, vtexOrder } = params;
+    const { orderId, vtexOrderId, detail, vtexOrder, includeRaw = false } = params;
     const vtex = vtexOrder as VtexOrderFields;
 
     const delivery = detail.deliveries?.[0];
@@ -106,10 +107,12 @@ export class FravegaFullOrderMapper {
         .flatMap(transaction => transaction.payments ?? [])
         .map(payment => FravegaFullOrderMapper.toPayment(payment)),
 
-      raw: {
-        sellerCentral: detail,
-        vtex: vtexOrder
-      }
+      ...(includeRaw && {
+        raw: {
+          sellerCentral: detail,
+          vtex: vtexOrder
+        }
+      })
     };
   }
 

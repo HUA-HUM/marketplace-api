@@ -7,11 +7,11 @@ import { GetFravegaFullOrders } from 'src/core/interactor/fravega/GetFravegaFull
 export class GetFravegaFullOrdersService {
   constructor(private readonly getFullOrdersInteractor: GetFravegaFullOrders) {}
 
-  async list(filters: FravegaOrdersFilters): Promise<FravegaFullOrdersPage> {
-    return this.getFullOrdersInteractor.list(filters);
+  async list(filters: FravegaOrdersFilters, includeRaw = false): Promise<FravegaFullOrdersPage> {
+    return this.getFullOrdersInteractor.list(filters, includeRaw);
   }
 
-  async getOne(suborderId: string, orderId: number): Promise<FravegaFullOrder> {
-    return this.getFullOrdersInteractor.getOne(suborderId, orderId);
+  async getOne(suborderId: string, orderId: number, includeRaw = false): Promise<FravegaFullOrder> {
+    return this.getFullOrdersInteractor.getOne(suborderId, orderId, includeRaw);
   }
 }

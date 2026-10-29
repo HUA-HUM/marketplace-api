@@ -52,7 +52,8 @@ export interface FravegaFullOrder {
     total: number;
   };
   payments: FravegaFullOrderPayment[];
-  raw: {
+  // Solo con includeRaw=true: payloads originales de Seller Central y VTEX
+  raw?: {
     sellerCentral: FravegaOrderDetail;
     vtex: FravegaVtexOrder;
   };
