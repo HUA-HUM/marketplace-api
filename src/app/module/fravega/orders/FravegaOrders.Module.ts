@@ -14,7 +14,10 @@ import { FravegaGetOrdersRepository } from 'src/core/drivers/repositories/fraveg
       useClass: FravegaGetOrdersRepository
     },
     FravegaHttpClient,
-    FravegaConfig
+    {
+      provide: FravegaConfig,
+      useFactory: () => new FravegaConfig('orders')
+    }
   ],
   exports: [FravegaGetOrdersService]
 })
