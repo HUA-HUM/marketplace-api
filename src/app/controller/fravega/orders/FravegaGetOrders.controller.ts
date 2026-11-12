@@ -1,8 +1,9 @@
-import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, HttpException, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FravegaGetOrdersService } from 'src/app/services/fravega/orders/FravegaGetOrdersService';
 import { FravegaOrderDetail } from 'src/core/entities/fravega/orders/FravegaOrderDetail';
 import { FravegaOrdersPage } from 'src/core/entities/fravega/orders/FravegaOrdersPage';
+import { FravegaHttpError } from 'src/core/drivers/repositories/fravega/http/error/FravegaHttpError';
 
 @ApiTags('fravega')
 @Controller('fravega/orders')
@@ -41,20 +42,24 @@ export class FravegaGetOrdersController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('page-size', new DefaultValuePipe(100), ParseIntPipe) pageSize?: number
   ): Promise<FravegaOrdersPage> {
-    return this.service.list({
-      sku: sku ? Number(sku) : undefined,
-      docnumber: docnumber ? Number(docnumber) : undefined,
-      clientname,
-      purchasedatefrom,
-      purchasedateto,
-      invoicementdatefrom,
-      invoicementdateto,
-      deliverytype,
-      status,
-      invoiceStatus,
-      page: Math.max(page ?? 1, 1),
-      pageSize: Math.min(Math.max(pageSize ?? 100, 1), 100)
-    });
+    try {
+      return await this.service.list({
+        sku: sku ? Number(sku) : undefined,
+        docnumber: docnumber ? Number(docnumber) : undefined,
+        clientname,
+        purchasedatefrom,
+        purchasedateto,
+        invoicementdatefrom,
+        invoicementdateto,
+        deliverytype,
+        status,
+        invoiceStatus,
+        page: Math.max(page ?? 1, 1),
+        pageSize: Math.min(Math.max(pageSize ?? 100, 1), 100)
+      });
+    } catch (error) {
+      throw this.mapFravegaError(error);
+    }
   }
 
   @Get(':suborderId')
@@ -73,6 +78,27 @@ export class FravegaGetOrdersController {
     @Param('suborderId') suborderId: string,
     @Query('orderid', ParseIntPipe) orderId: number
   ): Promise<FravegaOrderDetail> {
-    return this.service.getOne(suborderId, orderId);
+    try {
+      return await this.service.getOne(suborderId, orderId);
+    } catch (error) {
+      throw this.mapFravegaError(error);
+    }
+  }
+
+  private mapFravegaError(error: unknown): HttpException {
+    if (error instanceof FravegaHttpError) {
+      return new HttpException(
+        {
+          message: 'Frávega rechazó la operación de órdenes',
+          upstreamStatusCode: error.status,
+          upstreamResponse: error.data,
+          type: error.type,
+          detail: error.message
+        },
+        error.status && error.status >= 400 && error.status < 500 ? error.status : 502
+      );
+    }
+
+    return new HttpException({ message: 'Internal server error' }, 500);
   }
 }
