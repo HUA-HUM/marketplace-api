@@ -1,8 +1,10 @@
 import { FravegaOrderDetail } from 'src/core/entities/fravega/orders/FravegaOrderDetail';
+import { FravegaOrderSummary } from 'src/core/entities/fravega/orders/FravegaOrdersPage';
 import { FravegaVtexOrder } from 'src/core/entities/fravega/vtex/orders/FravegaVtexOrder';
 import {
   FravegaFullOrder,
   FravegaFullOrderItem,
+  FravegaFullOrderMissingField,
   FravegaFullOrderPayment
 } from 'src/core/entities/fravega/orders/full/FravegaFullOrder';
 
@@ -10,8 +12,30 @@ import {
 interface VtexOrderFields {
   status?: string;
   value?: number;
-  clientProfileData?: { phone?: string | null };
-  shippingData?: { address?: { receiverName?: string | null } };
+  clientProfileData?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  };
+  shippingData?: {
+    address?: {
+      receiverName?: string | null;
+      street?: string | null;
+      number?: string | null;
+      complement?: string | null;
+      reference?: string | null;
+      city?: string | null;
+      state?: string | null;
+      postalCode?: string | null;
+      country?: string | null;
+    };
+    logisticsInfo?: {
+      shippingEstimateDate?: string | null;
+      selectedSla?: string | null;
+      deliveryCompany?: string | null;
+    }[];
+  };
+  totals?: { id?: string; value?: number }[];
   items?: VtexOrderItem[];
   paymentData?: { transactions?: { payments?: VtexOrderPayment[] }[] };
 }
@@ -34,6 +58,11 @@ interface VtexOrderPayment {
 /* VTEX expresa montos en centavos */
 const fromCents = (value?: number): number => (typeof value === 'number' ? value / 100 : 0);
 
+const blankToNull = (value?: string | null): string | null => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+};
+
 export class FravegaFullOrderMapper {
   static toEntity(params: {
     orderId: number;
@@ -54,6 +83,18 @@ export class FravegaFullOrderMapper {
       ? `${receiver.firstName ?? ''} ${receiver.lastName ?? ''}`.trim()
       : (vtex.shippingData?.address?.receiverName ?? null);
 
+    const buyer = {
+      firstName: detail.buyer.firstName,
+      lastName: detail.buyer.lastName,
+      fullName: `${detail.buyer.firstName} ${detail.buyer.lastName}`.trim(),
+      documentType: detail.buyer.documentType,
+      documentNumber: detail.buyer.documentNumber,
+      cuil: billingPerson?.cuil ?? null,
+      // VTEX enmascara el email (@ct.vtex.com.br): el real solo viene en Seller Central
+      email: billingPerson?.email ?? null,
+      phone: vtex.clientProfileData?.phone ?? null
+    };
+
     return {
       orderId,
       suborderId: detail.suborderId,
@@ -66,17 +107,7 @@ export class FravegaFullOrderMapper {
       purchaseDate: detail.purchaseDate,
       estimatedDeliveryDate: delivery?.shippingData?.estimatedDeliveryDate ?? null,
 
-      buyer: {
-        firstName: detail.buyer.firstName,
-        lastName: detail.buyer.lastName,
-        fullName: `${detail.buyer.firstName} ${detail.buyer.lastName}`.trim(),
-        documentType: detail.buyer.documentType,
-        documentNumber: detail.buyer.documentNumber,
-        cuil: billingPerson?.cuil ?? null,
-        // VTEX enmascara el email (@ct.vtex.com.br): el real solo viene en Seller Central
-        email: billingPerson?.email ?? null,
-        phone: vtex.clientProfileData?.phone ?? null
-      },
+      buyer,
 
       shipping: {
         type: delivery?.type ?? null,
@@ -95,7 +126,7 @@ export class FravegaFullOrderMapper {
         country: address?.country ?? null
       },
 
-      items: (vtex.items ?? []).map(item => FravegaFullOrderMapper.toItem(item)),
+      items: FravegaFullOrderMapper.toItems(vtex),
 
       totals: {
         products: detail.productsTotal,
@@ -104,9 +135,10 @@ export class FravegaFullOrderMapper {
         total: fromCents(vtex.value)
       },
 
-      payments: (vtex.paymentData?.transactions ?? [])
-        .flatMap(transaction => transaction.payments ?? [])
-        .map(payment => FravegaFullOrderMapper.toPayment(payment)),
+      payments: FravegaFullOrderMapper.toPayments(vtex),
+
+      source: 'complete',
+      missing: FravegaFullOrderMapper.missingFields(buyer),
 
       ...(includeRaw && {
         raw: {
@@ -115,6 +147,117 @@ export class FravegaFullOrderMapper {
         }
       })
     };
+  }
+
+  /**
+   * Arma la orden cuando el detalle de Seller Central (por suborden) falla.
+   * - Listado de Seller Central: CUIL, DNI, nombre, estado, fecha y montos (en pesos).
+   * - VTEX: direccion, telefono, items con ASIN, pago y total (en centavos).
+   * El email real solo viene en el detalle de Seller Central: queda en null y se informa en `missing`.
+   */
+  static fromSummary(params: {
+    vtexOrderId: string;
+    summary: FravegaOrderSummary;
+    vtexOrder: FravegaVtexOrder;
+    fallbackReason: string;
+    includeRaw?: boolean;
+  }): FravegaFullOrder {
+    const { vtexOrderId, summary, vtexOrder, fallbackReason, includeRaw = false } = params;
+    const vtex = vtexOrder as VtexOrderFields;
+    const profile = vtex.clientProfileData;
+    const address = vtex.shippingData?.address;
+    const logistics = vtex.shippingData?.logisticsInfo?.[0];
+
+    const firstName = blankToNull(profile?.firstName) ?? '';
+    const lastName = blankToNull(profile?.lastName) ?? '';
+    const fullName = blankToNull(summary.clientName) ?? `${firstName} ${lastName}`.trim();
+
+    const buyer = {
+      firstName,
+      lastName,
+      fullName,
+      documentType: summary.documentType,
+      documentNumber: summary.documentNumber,
+      cuil: blankToNull(summary.cuil),
+      email: null,
+      phone: profile?.phone ?? null
+    };
+
+    const vtexShipping = vtex.totals?.find(total => total.id === 'Shipping')?.value;
+    const vtexDiscounts = vtex.totals?.find(total => total.id === 'Discounts')?.value;
+
+    return {
+      orderId: summary.orderId,
+      suborderId: summary.suborderId,
+      vtexOrderId,
+      status: {
+        sellerCentral: summary.status,
+        sellerCentralDelivery: summary.deliveryStatus ?? null,
+        vtex: vtex.status ?? null
+      },
+      purchaseDate: summary.purchaseDate,
+      estimatedDeliveryDate: logistics?.shippingEstimateDate ?? null,
+
+      buyer,
+
+      shipping: {
+        type: summary.deliveryType?.[0] ?? null,
+        mode: logistics?.selectedSla ?? null,
+        logisticsOperator: logistics?.deliveryCompany ?? null,
+        receiverName: blankToNull(address?.receiverName),
+        street: address?.street ?? null,
+        number: address?.number ?? null,
+        floor: null,
+        apartment: blankToNull(address?.complement),
+        betweenStreets: null,
+        references: blankToNull(address?.reference),
+        city: address?.city ?? null,
+        state: address?.state ?? null,
+        zipCode: address?.postalCode ?? null,
+        country: address?.country ?? null
+      },
+
+      items: FravegaFullOrderMapper.toItems(vtex),
+
+      totals: {
+        // El listado ya viene en pesos
+        products: summary.amount,
+        shipping: fromCents(vtexShipping),
+        // VTEX informa los descuentos en negativo
+        discount: Math.abs(fromCents(vtexDiscounts)),
+        total: fromCents(vtex.value)
+      },
+
+      payments: FravegaFullOrderMapper.toPayments(vtex),
+
+      source: 'fallback',
+      missing: FravegaFullOrderMapper.missingFields(buyer),
+      fallbackReason,
+
+      ...(includeRaw && {
+        raw: {
+          sellerCentral: summary,
+          vtex: vtexOrder
+        }
+      })
+    };
+  }
+
+  private static missingFields(buyer: { cuil: string | null; email: string | null }): FravegaFullOrderMissingField[] {
+    const missing: FravegaFullOrderMissingField[] = [];
+    if (!buyer.email) missing.push('email');
+    if (!buyer.cuil) missing.push('cuil');
+    return missing;
+  }
+
+  private static toItems(vtex: VtexOrderFields): FravegaFullOrderItem[] {
+    return (vtex.items ?? []).map(item => FravegaFullOrderMapper.toItem(item));
+  }
+
+  private static toPayments(vtex: VtexOrderFields): FravegaFullOrderPayment[] {
+    return (vtex.paymentData?.transactions ?? [])
+      .flatMap(transaction => transaction.payments ?? [])
+      .map(payment => FravegaFullOrderMapper.toPayment(payment));
   }
 
   private static toItem(item: VtexOrderItem): FravegaFullOrderItem {
