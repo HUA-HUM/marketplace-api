@@ -1,4 +1,5 @@
 import { FravegaOrderDetail } from 'src/core/entities/fravega/orders/FravegaOrderDetail';
+import { FravegaOrderSummary } from 'src/core/entities/fravega/orders/FravegaOrdersPage';
 import { FravegaVtexOrder } from 'src/core/entities/fravega/vtex/orders/FravegaVtexOrder';
 
 /**
@@ -54,12 +55,27 @@ export interface FravegaFullOrder {
     total: number;
   };
   payments: FravegaFullOrderPayment[];
+  /**
+   * complete: detalle de Seller Central (por suborden) + VTEX.
+   * fallback: el detalle por suborden fallo (Seller Central lo devuelve 500 seguido) y la orden
+   * se armo con el listado de Seller Central (CUIL, DNI, productos) + VTEX (direccion, telefono, items).
+   */
+  source: FravegaFullOrderSource;
+  // Datos del comprador que no se pudieron obtener. En fallback siempre falta el email (VTEX lo enmascara)
+  missing: FravegaFullOrderMissingField[];
+  // Solo en fallback: error del detalle de Seller Central que lo provoco
+  fallbackReason?: string;
   // Solo con includeRaw=true: payloads originales de Seller Central y VTEX
   raw?: {
-    sellerCentral: FravegaOrderDetail;
+    // En fallback es el item del listado de Seller Central
+    sellerCentral: FravegaOrderDetail | FravegaOrderSummary;
     vtex: FravegaVtexOrder;
   };
 }
+
+export type FravegaFullOrderSource = 'complete' | 'fallback';
+
+export type FravegaFullOrderMissingField = 'email' | 'cuil';
 
 export interface FravegaFullOrderItem {
   asin: string | null;
